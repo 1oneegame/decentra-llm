@@ -31,6 +31,17 @@ ipynb_checkpoints/
 *.log
 *.tmp
 
-# IDE-specific settings (VS Code)
-vscode/
+# IDE-specific settings
+.vscode/
+.idea/
 *.code-workspace
+*.swp
+*.swo
+
+# ML Models (большие файлы)
+models/*.pkl
+models/*.joblib
+
+# OS
+.DS_Store
+Thumbs.db
