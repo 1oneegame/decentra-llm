@@ -102,18 +102,18 @@ export default function ClientsTab({ clients }: ClientsTabProps) {
     <>
       <GridItem>
         <div className="flex items-center justify-between mb-8">
-          <h3 className="text-xl font-semibold text-gray-900">Clients Database</h3>
-          <span className="text-sm text-gray-500 font-mono">{clients.length} total clients</span>
+          <h3 className="text-xl font-semibold text-gray-900">База клиентов</h3>
+          <span className="text-sm text-gray-500 font-mono">{clients.length} всего клиентов</span>
         </div>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow className="border-gray-100">
-                <TableHead className="text-gray-600">Name</TableHead>
-                <TableHead className="text-gray-600">Status</TableHead>
-                <TableHead className="text-gray-600">Age</TableHead>
-                <TableHead className="text-gray-600">City</TableHead>
-                <TableHead className="text-gray-600">Balance</TableHead>
+                <TableHead className="text-gray-600">Имя</TableHead>
+                <TableHead className="text-gray-600">Статус</TableHead>
+                <TableHead className="text-gray-600">Возраст</TableHead>
+                <TableHead className="text-gray-600">Город</TableHead>
+                <TableHead className="text-gray-600">Баланс</TableHead>
                 <TableHead className="text-gray-600"></TableHead>
               </TableRow>
             </TableHeader>
@@ -158,7 +158,7 @@ export default function ClientsTab({ clients }: ClientsTabProps) {
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={selectedClient ? `Analysis: ${selectedClient.name}` : "Client Analysis"}
+        title={selectedClient ? `Анализ: ${selectedClient.name}` : "Анализ клиента"}
       >
         {analyzingClient ? (
           <div className="flex items-center justify-center py-12">
