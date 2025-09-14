@@ -185,10 +185,10 @@ export default function NotificationsTab({ recommendations }: NotificationsTabPr
     <>
       <GridItem className="col-span-2">
         <div className="flex items-center justify-between mb-8">
-          <h3 className="text-xl font-semibold text-gray-900">Generated Messages</h3>
+          <h3 className="text-xl font-semibold text-gray-900">Сгенерированные сообщения</h3>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-500 font-mono">
-              {generatedMessages.length} generated • {selectedClients.length} selected
+              {generatedMessages.length} сгенерировано • {selectedClients.length} выбранных
             </span>
             <Button 
               onClick={generateBatchMessages}
@@ -196,7 +196,7 @@ export default function NotificationsTab({ recommendations }: NotificationsTabPr
               size="sm"
               className="bg-blue-900 hover:bg-blue-800 text-white"
             >
-              {isGenerating === 'batch' ? "Generating..." : `Generate for Selected (${selectedClients.length})`}
+              {isGenerating === 'batch' ? "Генерация..." : `Сгенерировать для выбранных (${selectedClients.length})`}
             </Button>
           </div>
         </div>
@@ -204,10 +204,10 @@ export default function NotificationsTab({ recommendations }: NotificationsTabPr
         {generatedMessages.length === 0 ? (
           <div className="text-center py-16 text-gray-500 border-t border-gray-100">
             <div className="mb-4">✍️</div>
-            <p className="text-lg font-medium mb-2">No messages generated yet</p>
-            <p className="text-sm mb-6">Generate personalized messages for specific clients</p>
+            <p className="text-lg font-medium mb-2">Нет сообщений сгенерировано</p>
+            <p className="text-sm mb-6">Сгенерируйте персонализированные сообщения для конкретных клиентов</p>
             <div className="space-y-4">
-              <h4 className="font-medium text-gray-700">Select clients to generate messages:</h4>
+              <h4 className="font-medium text-gray-700">Выберите клиентов для генерации сообщений:</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
                 {clients.slice(0, 9).map((client) => (
                   <div 
@@ -241,7 +241,7 @@ export default function NotificationsTab({ recommendations }: NotificationsTabPr
                       disabled={isGenerating === client.client_code.toString()}
                       className="w-full mt-3 bg-blue-900 hover:bg-blue-800 text-white"
                     >
-                      {isGenerating === client.client_code.toString() ? "Generating..." : "Generate Message"}
+                      {isGenerating === client.client_code.toString() ? "Генерация..." : "Сгенерировать сообщение"}
                     </Button>
                   </div>
                 ))}
@@ -253,12 +253,12 @@ export default function NotificationsTab({ recommendations }: NotificationsTabPr
             <Table>
               <TableHeader>
                 <TableRow className="border-gray-100">
-                  <TableHead className="text-gray-600">Client</TableHead>
-                  <TableHead className="text-gray-600">Message</TableHead>
-                  <TableHead className="text-gray-600">Product</TableHead>
-                  <TableHead className="text-gray-600">Confidence</TableHead>
-                  <TableHead className="text-gray-600">Expected Benefit</TableHead>
-                  <TableHead className="text-gray-600">Actions</TableHead>
+                  <TableHead className="text-gray-600">Клиент</TableHead>
+                  <TableHead className="text-gray-600">Сообщение</TableHead>
+                  <TableHead className="text-gray-600">Продукт</TableHead>
+                  <TableHead className="text-gray-600">Уверенность</TableHead>
+                  <TableHead className="text-gray-600">Ожидаемая выгода</TableHead>
+                  <TableHead className="text-gray-600">Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -270,7 +270,7 @@ export default function NotificationsTab({ recommendations }: NotificationsTabPr
                       {message.is_regenerated && (
                         <div className="mt-1">
                           <span className="inline-flex items-center px-1 py-0.5 rounded text-xs font-medium bg-orange-50 text-orange-700">
-                            🔄 Regenerated
+                            🔄 Перегенерировано
                           </span>
                         </div>
                       )}
@@ -309,7 +309,7 @@ export default function NotificationsTab({ recommendations }: NotificationsTabPr
                           ₸ {message.expected_benefit.toLocaleString()}
                         </div>
                         <div className="text-xs text-gray-500">
-                          Optimal: {message.optimal_time}:00
+                          Оптимальное время: {message.optimal_time}:00
                         </div>
                       </div>
                     </TableCell>
@@ -338,7 +338,7 @@ export default function NotificationsTab({ recommendations }: NotificationsTabPr
                             }, 1000)
                           }}
                         >
-                          Copy
+                          Копировать
                         </Button>
                       </div>
                     </TableCell>
@@ -351,23 +351,23 @@ export default function NotificationsTab({ recommendations }: NotificationsTabPr
       </GridItem>
       
       <GridItem>
-        <h3 className="text-xl font-semibold mb-8 text-gray-900">Generation Statistics</h3>
+        <h3 className="text-xl font-semibold mb-8 text-gray-900">Статистика генерации</h3>
         <div className="space-y-8">
           <div className="text-center border-b border-gray-100 pb-6">
             <div className="text-4xl font-bold mb-2 text-blue-900">{stats.generated_today}</div>
-            <div className="text-sm text-gray-600">Generated Today</div>
+            <div className="text-sm text-gray-600">Сгенерировано сегодня</div>
           </div>
           <div className="text-center border-b border-gray-100 pb-6">
             <div className="text-4xl font-bold mb-2 text-blue-900">{stats.unique_products}</div>
-            <div className="text-sm text-gray-600">Unique Products</div>
+            <div className="text-sm text-gray-600">Уникальные продукты</div>
           </div>
           <div className="text-center border-b border-gray-100 pb-6">
             <div className="text-4xl font-bold mb-2 text-blue-900">{stats.avg_confidence.toFixed(1)}%</div>
-            <div className="text-sm text-gray-600">Avg Confidence</div>
+            <div className="text-sm text-gray-600">Средняя уверенность</div>
           </div>
           <div className="text-center pt-2">
             <div className="text-2xl font-bold mb-2 text-gray-700">{stats.total_generated}</div>
-            <div className="text-sm text-gray-600">Total Generated</div>
+            <div className="text-sm text-gray-600">Всего сгенерировано</div>
           </div>
         </div>
       </GridItem>

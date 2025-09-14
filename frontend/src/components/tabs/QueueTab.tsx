@@ -147,10 +147,10 @@ export default function QueueTab({ clients }: QueueTabProps) {
     <>
       <GridItem className="col-span-3">
         <div className="flex items-center justify-between mb-8">
-          <h3 className="text-xl font-semibold text-gray-900">AI Message Queue</h3>
+          <h3 className="text-xl font-semibold text-gray-900">Очередь пуш-уведомлений</h3>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-500 font-mono">
-              {queuedMessages.length} messages • {queuedMessages.filter(m => m.status === 'approved').length} approved
+              {queuedMessages.length} сообщений • {queuedMessages.filter(m => m.status === 'approved').length} одобренных
             </span>
             <Button 
               onClick={generateMLQueue}
@@ -158,7 +158,7 @@ export default function QueueTab({ clients }: QueueTabProps) {
               size="sm"
               className="bg-blue-900 hover:bg-blue-800 text-white"
             >
-              {isGeneratingQueue ? "Generating..." : "Regenerate Queue"}
+              {isGeneratingQueue ? "Генерация..." : "Перегенерировать очередь"}
             </Button>
           </div>
         </div>
@@ -166,12 +166,12 @@ export default function QueueTab({ clients }: QueueTabProps) {
       {queuedMessages.length === 0 ? (
         <div className="text-center py-16 text-gray-500 border-t border-gray-100">
           <div className="mb-4">🤖</div>
-          <p className="text-sm">AI Message Queue is empty</p>
-          <p className="text-xs text-gray-400 mt-2">Queue will auto-populate when ML recommendations are available</p>
+          <p className="text-sm">Очередь пуш-уведомлений пуста</p>
+          <p className="text-xs text-gray-400 mt-2">Очередь будет автоматически заполняться, когда будут доступны рекомендации ML</p>
           {isGeneratingQueue && (
             <div className="inline-flex items-center text-blue-600 mt-4">
               <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin mr-2"></div>
-              Generating queue...
+              Генерация очереди...
             </div>
           )}
         </div>
@@ -180,13 +180,13 @@ export default function QueueTab({ clients }: QueueTabProps) {
           <Table>
             <TableHeader>
               <TableRow className="border-gray-100">
-                <TableHead className="text-gray-600">Client</TableHead>
-                <TableHead className="text-gray-600">Product</TableHead>
-                <TableHead className="text-gray-600">Message</TableHead>
-                <TableHead className="text-gray-600">Confidence</TableHead>
-                <TableHead className="text-gray-600">Scheduled</TableHead>
-                <TableHead className="text-gray-600">Status</TableHead>
-                <TableHead className="text-gray-600">Actions</TableHead>
+                <TableHead className="text-gray-600">Клиент</TableHead>
+                <TableHead className="text-gray-600">Продукт</TableHead>
+                <TableHead className="text-gray-600">Сообщение</TableHead>
+                <TableHead className="text-gray-600">Уверенность</TableHead>
+                <TableHead className="text-gray-600">Запланировано</TableHead>
+                <TableHead className="text-gray-600">Статус</TableHead>
+                <TableHead className="text-gray-600">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

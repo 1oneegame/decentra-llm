@@ -228,14 +228,14 @@ export default function ClientsTab({ clients }: ClientsTabProps) {
                   "{clientAnalysis.pushPrediction.push_notification}"
                 </div>
                 <div className="text-sm text-gray-500 font-mono">
-                  Optimal delivery time: {clientAnalysis.pushPrediction.optimal_time}:00
+                  Оптимальное время доставки: {clientAnalysis.pushPrediction.optimal_time}:00
                 </div>
               </div>
             )}
           </div>
         ) : (
           <div className="text-center py-12 text-gray-400">
-            <p className="text-sm">No analysis data available</p>
+            <p className="text-sm">Нет данных для анализа</p>
           </div>
         )}
       </Modal>
