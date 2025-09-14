@@ -1,14 +1,26 @@
-# Welcome to the yerayal team's solution!
+# welcome to the yerayal team's solution!
 
-## Get started quick:
+## quick start
 
-1. ```cd backend```
-   1.1. ```python -m venv venv```
-   1.2. ```source venv/bin/activate```
-   1.3. ```pip install -r requirements.txt```
-   1.4. ```python run_server.py```
-2. ```cd frontend```
-   2.1. ```npm i```
-   2.2. ```npm run dev```
+### backend
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python run_server.py
+````
 
-there's are two readmes explaining how the backend works – check them if you want to.
+### frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+---
+
+## notes
+
+* there are two readmes in the backend folder explaining how it works — check them out if you’re curious.
