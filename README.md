@@ -6,7 +6,8 @@
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate
+source venv/bin/activate | for mac
+.\venv\Scripts\Activate.ps1 | for windows
 pip install -r requirements.txt
 python run_server.py
 ````
