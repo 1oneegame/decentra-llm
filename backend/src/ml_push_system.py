@@ -27,6 +27,7 @@ class MLPushSystem:
         self.ml_model = ProductRecommendationML()
         self.timing_model = TimingOptimizationML()
         self.product_catalog = ProductCatalog.get_all_products()
+        self.trained_feature_names = None
         
         
         self.client_analyzer = ClientAnalyzer()
@@ -102,6 +103,7 @@ class MLPushSystem:
         
         
         X, feature_names = self.feature_engineer.prepare_dataset(self.ml_features)
+        self.trained_feature_names = feature_names
         
         print(f"📊 Размер датасета: {X.shape}")
         print(f"🔢 Количество фичей: {len(feature_names)}")
@@ -159,7 +161,20 @@ class MLPushSystem:
         
         
         features_df = pd.DataFrame([features])
-        X = self.feature_engineer.scaler.transform(features_df)
+        
+        
+        if self.trained_feature_names:
+            missing_features = set(self.trained_feature_names) - set(features_df.columns)
+            for missing_feature in missing_features:
+                features_df[missing_feature] = 0
+            
+            features_df = features_df[self.trained_feature_names]
+        
+        
+        if hasattr(self.feature_engineer, 'scaler') and hasattr(self.feature_engineer.scaler, 'scale_'):
+            X = self.feature_engineer.scaler.transform(features_df)
+        else:
+            X = features_df.values
         
         
         ml_product, ml_confidence, ml_benefit = self.ml_model.predict_product(X[0])
@@ -315,8 +330,37 @@ class MLPushSystem:
     def save_ml_models(self, filepath: str = 'models/ml_push_system.pkl'):
         
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
-        self.ml_model.save_model(filepath)
-        print(f"✅ ML модели сохранены: {filepath}")
+        
+        
+        system_data = {
+            'ml_model': self.ml_model,
+            'feature_engineer_scaler': self.feature_engineer.scaler,
+            'trained_feature_names': self.trained_feature_names,
+            'training_metrics': getattr(self, 'training_metrics', {}),
+        }
+        
+        import joblib
+        joblib.dump(system_data, filepath)
+        print(f"✅ ML система сохранена: {filepath}")
+    
+    def load_ml_models(self, filepath: str = 'models/ml_push_system.pkl'):
+        
+        import joblib
+        system_data = joblib.load(filepath)
+        
+        
+        if 'ml_model' in system_data:
+            
+            self.ml_model = system_data['ml_model']
+            self.feature_engineer.scaler = system_data.get('feature_engineer_scaler', self.feature_engineer.scaler)
+            self.trained_feature_names = system_data.get('trained_feature_names')
+            self.training_metrics = system_data.get('training_metrics', {})
+        else:
+            
+            self.ml_model.load_model(filepath)
+            print("⚠️ Загружена старая версия модели, рекомендуется переобучение")
+        
+        print(f"✅ ML система загружена: {filepath}")
     
     def _create_training_labels_from_spending_patterns(self, analysis: Dict[str, Any]) -> str:
         

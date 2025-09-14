@@ -118,8 +118,10 @@ class ProductRecommendationML:
             X_train_poly = self.poly_features.fit_transform(X_train)
             X_test_poly = self.poly_features.transform(X_test)
             X_full_poly = self.poly_features.transform(X)
+            self.use_poly_features = True
         else:
             X_train_poly, X_test_poly, X_full_poly = X_train, X_test, X
+            self.use_poly_features = False
         
         self.product_classifier.fit(X_train_poly, y_train)
         
@@ -181,7 +183,7 @@ class ProductRecommendationML:
             X, benefits, test_size=0.25, random_state=42
         )
         
-        if len(X_train) > 20:
+        if hasattr(self, 'use_poly_features') and self.use_poly_features:
             X_train_poly = self.poly_features.transform(X_train)
             X_test_poly = self.poly_features.transform(X_test)
         else:
@@ -291,9 +293,14 @@ class ProductRecommendationML:
         
         features_reshaped = client_features.reshape(1, -1)
         
-        try:
-            features_poly = self.poly_features.transform(features_reshaped)
-        except:
+        
+        if hasattr(self, 'use_poly_features') and self.use_poly_features:
+            try:
+                features_poly = self.poly_features.transform(features_reshaped)
+            except Exception as e:
+                print(f"⚠️ Ошибка применения polynomial features: {e}")
+                features_poly = features_reshaped
+        else:
             features_poly = features_reshaped
             
         probabilities = self.product_classifier.predict_proba(features_poly)[0]
@@ -314,9 +321,14 @@ class ProductRecommendationML:
         
         features_reshaped = client_features.reshape(1, -1)
         
-        try:
-            features_poly = self.poly_features.transform(features_reshaped)
-        except:
+        
+        if hasattr(self, 'use_poly_features') and self.use_poly_features:
+            try:
+                features_poly = self.poly_features.transform(features_reshaped)
+            except Exception as e:
+                print(f"⚠️ Ошибка применения polynomial features: {e}")
+                features_poly = features_reshaped
+        else:
             features_poly = features_reshaped
             
         probabilities = self.product_classifier.predict_proba(features_poly)[0]
@@ -367,6 +379,8 @@ class ProductRecommendationML:
             'product_classifier': self.product_classifier,
             'benefit_regressor': self.benefit_regressor,
             'customer_segmentation': self.customer_segmentation,
+            'poly_features': self.poly_features,
+            'use_poly_features': getattr(self, 'use_poly_features', False),
             'is_trained': self.is_trained
         }
         joblib.dump(model_data, filepath)
@@ -376,6 +390,8 @@ class ProductRecommendationML:
         self.product_classifier = model_data['product_classifier']
         self.benefit_regressor = model_data['benefit_regressor']
         self.customer_segmentation = model_data['customer_segmentation']
+        self.poly_features = model_data.get('poly_features', self.poly_features)
+        self.use_poly_features = model_data.get('use_poly_features', False)
         self.is_trained = model_data['is_trained']
 
 
