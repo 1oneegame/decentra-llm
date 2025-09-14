@@ -166,8 +166,8 @@ class ClientAnalyzer:
         evening_spending_ratio = evening_spending / max(total_spending, 1)
         weekend_spending_ratio = weekend_spending / max(total_spending, 1)
         
-        large_transactions = [amt for amt in amounts if amt > avg_transaction_amount * 2]
-        large_transaction_ratio = len(large_transactions) / max(len(amounts), 1)
+        large_transactions = [amt for amt in amounts if avg_transaction_amount > 0 and amt > avg_transaction_amount * 2]
+        large_transaction_ratio = len(large_transactions) / max(len(amounts), 1) if amounts else 0
         
         foreign_transactions = [tx for tx in transactions if tx.currency in ['USD', 'EUR']]
         foreign_currency_ratio = len(foreign_transactions) / max(len(transactions), 1)

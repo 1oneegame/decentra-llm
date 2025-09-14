@@ -10,8 +10,6 @@ ENV/
 env/
 env/
 
-dataset/
-
 # Distribution / packaging
 build/
 dist/

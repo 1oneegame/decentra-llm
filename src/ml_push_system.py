@@ -67,7 +67,7 @@ class MLPushSystem:
                 self.ml_features.append(all_features)
                 
                 
-                best_product = self._create_training_labels_from_spending_patterns(analysis)
+                best_product = self._create_behavioral_training_labels(analysis, client_code)
                 benefit = self._calculate_benefit_heuristic(analysis, best_product)
                 
                 self.training_labels.append(best_product)
@@ -82,6 +82,10 @@ class MLPushSystem:
                 
             except Exception as e:
                 print(f"❌ Ошибка обработки клиента {client_code}: {e}")
+                
+                transactions_exist = self.data_loader.load_client_transactions(client_code)
+                transfers_exist = self.data_loader.load_client_transfers(client_code)
+                print(f"   📊 Данные клиента {client_code}: транзакции={len(transactions_exist)}, переводы={len(transfers_exist)}")
                 
                 self.ml_features.append({})
                 self.training_labels.append('Депозит накопительный')  # По умолчанию
@@ -154,12 +158,15 @@ class MLPushSystem:
         timing_prediction = self.timing_model.predict_optimal_timing(features)
         
         
-        cluster = self.ml_model.customer_segmentation.predict(X)[0]
+        try:
+            cluster = self.ml_model.customer_segmentation.predict(X)[0]
+        except:
+            cluster = 0
         
         
         analysis = client_data['analysis']
         push_message = self.push_generator.generate_push(
-            analysis, ml_product
+            analysis, ml_product, cluster
         )
         
         return {
@@ -169,6 +176,7 @@ class MLPushSystem:
                 'confidence': ml_confidence,
                 'expected_benefit': ml_benefit,
                 'cluster': int(cluster),
+                'cluster_description': self.push_generator.get_cluster_description(int(cluster)),
                 'push_notification': push_message
             },
             'timing_optimization': timing_prediction,
@@ -377,7 +385,79 @@ class MLPushSystem:
             return 'Депозит накопительный'
             
         
-        return 'Кредитная карта'   
+        return 'Кредитная карта'
+    
+    def _create_behavioral_training_labels(self, analysis: Dict[str, Any], client_code: int) -> str:
+        import random
+        
+        total_spending = max(analysis.get('total_spending', 1), 1)
+        age = analysis.get('age', 35)
+        balance = analysis.get('avg_balance', 0)
+        
+        travel_ratio = (analysis.get('travel_spending', 0) + analysis.get('taxi_spending', 0)) / total_spending
+        restaurant_ratio = analysis.get('restaurant_spending', 0) / total_spending  
+        online_ratio = analysis.get('online_services_spending', 0) / total_spending
+        fx_ratio = analysis.get('fx_operations', 0) / total_spending
+        balance_to_spending = balance / total_spending if total_spending > 0 else 0
+        
+        products_scores = {}
+        
+        products_scores['Карта для путешествий'] = (
+            travel_ratio * 100 + 
+            (1 if travel_ratio > 0.15 else 0) * 20 +
+            (1 if analysis.get('travel_spending', 0) > 100000 else 0) * 15 +
+            random.uniform(-10, 10)
+        )
+        
+        products_scores['Премиальная карта'] = (
+            (balance / 1000000) * 25 +
+            restaurant_ratio * 80 +
+            (1 if analysis.get('status') == 'Премиальный клиент' else 0) * 30 +
+            (1 if analysis.get('jewelry_cosmetics_spending', 0) > 20000 else 0) * 15 +
+            random.uniform(-15, 15)
+        )
+        
+        products_scores['Кредитная карта'] = (
+            online_ratio * 120 +
+            (1 if total_spending > 250000 else 0) * 20 +
+            (1 if age < 45 else 0) * 15 +
+            (len(analysis.get('spending_by_category', {})) / 10) * 25 +
+            random.uniform(-12, 12)
+        )
+        
+        products_scores['Обмен валют'] = (
+            fx_ratio * 150 +
+            (1 if analysis.get('foreign_currency_spending', 0) > 20000 else 0) * 25 +
+            random.uniform(-8, 8)
+        )
+        
+        products_scores['Депозит сберегательный'] = (
+            (balance_to_spending / 10) * 30 +
+            (1 if balance > 1000000 else 0) * 35 +
+            (1 if age > 35 else 0) * 15 +
+            random.uniform(-10, 10)
+        )
+        
+        products_scores['Инвестиции'] = (
+            (1 if age < 40 else 0) * 25 +
+            (1 if balance > 300000 else 0) * 20 +
+            (1 if len(analysis.get('risk_indicators', [])) == 0 else 0) * 20 +
+            (1 if total_spending < balance * 0.5 else 0) * 15 +
+            random.uniform(-8, 8)
+        )
+        
+        products_scores['Кредит наличными'] = (
+            (1 if balance < 200000 else 0) * 40 +
+            (1 if 'negative_cash_flow' in analysis.get('risk_indicators', []) else 0) * 30 +
+            (1 if analysis.get('monthly_cash_flow', 0) < 0 else 0) * 25 +
+            random.uniform(-5, 5)
+        )
+        
+        if client_code % 7 == 0:
+            products_scores[random.choice(list(products_scores.keys()))] += random.uniform(5, 25)
+        
+        max_product = max(products_scores.items(), key=lambda x: x[1])
+        return max_product[0]
     
     def _calculate_benefit_heuristic(self, analysis: Dict[str, Any], product: str) -> float:
         
@@ -397,7 +477,7 @@ class MLPushSystem:
         elif product == 'Инвестиции':
             return analysis['avg_balance'] * 0.12 
         elif product == 'Кредит наличными':
-            return 50000  # доступность кредита
+            return 50000 
         else:
             return 10000 
 
@@ -433,7 +513,7 @@ def demo_ml_system():
             print(f"\n👤 Клиент {client_id}:")
             print(f"   🤖 ML: {ml_pred['product']} (уверенность: {ml_pred['confidence']:.2f})")
             print(f"   💰 Ожидаемая выгода: {ml_pred['expected_benefit']:.0f} ₸")
-            print(f"   🎯 Кластер: {ml_pred['cluster']}")
+            print(f"   🎯 Профиль: {ml_pred['cluster_description']}")
             print(f"   ⏰ Оптимальное время: {result['timing_optimization']['optimal_hour']}:00")
             print(f"   📱 Пуш: {ml_pred['push_notification']}")
             
@@ -453,6 +533,33 @@ def demo_ml_system():
     
     
     ml_system.save_ml_models()
+    
+    
+    print("\n🔄 Генерация CSV с рекомендациями...")
+    recommendations = []
+    for client_code in ml_system.clients_data.keys():
+        try:
+            result = ml_system.predict_with_ml(client_code)
+            ml_pred = result['ml_prediction']
+            
+            recommendations.append({
+                'client_code': client_code,
+                'product': ml_pred['product'],
+                'confidence': ml_pred['confidence'],
+                'expected_benefit': ml_pred['expected_benefit'],
+                'cluster_description': ml_pred['cluster_description'],
+                'push_notification': ml_pred['push_notification']
+            })
+        except Exception as e:
+            print(f"❌ Ошибка CSV для клиента {client_code}: {e}")
+    
+    import pandas as pd
+    import os
+    df = pd.DataFrame(recommendations)
+    output_path = 'data/processed/recommendations.csv'
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    df.to_csv(output_path, index=False, encoding='utf-8')
+    print(f"✅ CSV сохранен: {output_path} ({len(recommendations)} записей)")
     
     
     print("\n" + ml_system.generate_ml_report())
