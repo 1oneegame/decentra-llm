@@ -22,6 +22,7 @@ class PushNotificationResponse(BaseModel):
     push_notification: str
     recommended_product: str
     confidence: float
+    expected_benefit: float
     optimal_time: int
 
 class RecommendationResponse(BaseModel):
@@ -65,13 +66,41 @@ async def startup_event():
             print("🔄 Загрузка сохраненной ML модели...")
             ml_system.load_and_prepare_data()
             ml_system.ml_model.load_model(model_path)
+            
+            # Если метрики не сохранены, устанавливаем значения по умолчанию
+            if not hasattr(ml_system, 'training_metrics'):
+                ml_system.training_metrics = {
+                    'classifier_accuracy': 0.0,
+                    'regressor_rmse': 0.0,
+                    'clustering_score': 0.0,
+                    'clusters_count': 0,
+                    'dataset_shape': (0, 0),
+                    'feature_count': 0
+                }
+            
             print("✅ ML система загружена из сохраненной модели")
         else:
             print("🔄 Обучение новой ML модели...")
             ml_system.load_and_prepare_data()
-            ml_system.train_ml_models()
+            training_results = ml_system.train_ml_models()
             ml_system.save_ml_models(model_path)
+            
+            # Измеряем и сохраняем метрики
+            classifier_metrics = training_results.get('classifier_metrics', {})
+            regressor_metrics = training_results.get('regressor_metrics', {})
+            segmentation_metrics = training_results.get('segmentation', {}) 
+            
+            ml_system.training_metrics = {
+                'classifier_accuracy': classifier_metrics.get('test_accuracy', 0),
+                'regressor_rmse': regressor_metrics.get('test_rmse', 0),
+                'clustering_score': segmentation_metrics.get('kmeans_silhouette', 0),
+                'clusters_count': len(segmentation_metrics.get('analysis', [])),
+                'dataset_shape': training_results.get('dataset_shape', (0, 0)),
+                'feature_count': len(training_results.get('feature_names', []))
+            }
+            
             print("✅ ML система обучена и сохранена")
+            print(f"📊 Метрики: Точность={ml_system.training_metrics['classifier_accuracy']:.3f}, RMSE={ml_system.training_metrics['regressor_rmse']:.0f}")
             
     except Exception as e:
         print(f"❌ Ошибка инициализации ML системы: {e}")
@@ -89,7 +118,7 @@ async def predict_push_notification(
 ):
     if ml_system is None:
         raise HTTPException(status_code=500, detail="ML система не инициализирована")
-    
+     
     try:
         client_info = json.loads(client_data)
         
@@ -175,6 +204,7 @@ async def predict_push_notification(
             push_notification=push_message,
             recommended_product=ml_product,
             confidence=ml_confidence,
+            expected_benefit=ml_benefit,
             optimal_time=timing_prediction['optimal_hour']
         )
         
@@ -395,6 +425,7 @@ async def predict_push_for_client(client_code: int):
             push_notification=push_message,
             recommended_product=ml_product,
             confidence=ml_confidence,
+            expected_benefit=ml_benefit,
             optimal_time=timing_prediction['optimal_hour']
         )
         
@@ -403,5 +434,42 @@ async def predict_push_for_client(client_code: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Ошибка при предсказании пуш-уведомления: {str(e)}")
 
+@app.get("/ml-metrics")
+async def get_ml_metrics():
+    if ml_system is None:
+        raise HTTPException(status_code=500, detail="ML система не инициализирована")
     
+    try:
+        if ml_system.ml_model and ml_system.ml_model.is_trained and hasattr(ml_system, 'training_metrics'):
+            metrics = ml_system.training_metrics
+            return {
+                "ml_metrics": {
+                    "model_status": "trained",
+                    "classifier_accuracy": float(metrics.get('classifier_accuracy', 0)),
+                    "regressor_rmse": float(metrics.get('regressor_rmse', 0)),
+                    "clustering_score": float(metrics.get('clustering_score', 0)),
+                    "clusters_count": int(metrics.get('clusters_count', 0)),
+                    "dataset_shape": metrics.get('dataset_shape', (0, 0)),
+                    "feature_count": int(metrics.get('feature_count', 0))
+                },
+                "timestamp": datetime.now().isoformat()
+            }
+        else:
+            return {
+                "ml_metrics": {
+                    "model_status": "not_trained",
+                    "classifier_accuracy": None,
+                    "regressor_rmse": None,
+                    "clustering_score": None,
+                    "clusters_count": None,
+                    "dataset_shape": None,
+                    "feature_count": None
+                },
+                "timestamp": datetime.now().isoformat(),
+                "note": "Модели обучаются автоматически при первом запуске сервера"
+            }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка при получении метрик ML: {str(e)}")
+
     

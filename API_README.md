@@ -124,6 +124,7 @@ python run_server.py
   "push_notification": "Иван Иванов, выгодно и практично! Траты Общие траты, Путешествия, Такси = возврат 20,182 ₸. Без скрытых комиссий!",
   "recommended_product": "Кредитная карта",
   "confidence": 0.85,
+  "expected_benefit": 20182.0,
   "optimal_time": 14
 }
 ```
@@ -151,6 +152,7 @@ python run_server.py
   "push_notification": "Айгерим, оптимизируйте ликвидность! Кредитное плечо для инвестиционных возможностей. Гибкие условия возврата.",
   "recommended_product": "Кредит наличными",
   "confidence": 0.979403740266614,
+  "expected_benefit": 47387.223999278685,
   "optimal_time": 14
 }
 ```
@@ -160,6 +162,45 @@ python run_server.py
 - `404` - Клиент не найден
 - `404` - Файлы транзакций/переводов не найдены
 - `500` - ML система не инициализирована
+
+### GET /ml-metrics
+
+Получение метрик качества ML моделей
+
+**Ответ (модели обучены):**
+
+```json
+{
+  "ml_metrics": {
+    "model_status": "trained",
+    "classifier_accuracy": 1.0,
+    "regressor_rmse": 10774.0,
+    "clustering_score": 0.65,
+    "clusters_count": 6,
+    "dataset_shape": [60, 25],
+    "feature_count": 25
+  },
+  "timestamp": "2024-01-15T10:30:00"
+}
+```
+
+**Ответ (модели не обучены):**
+
+```json
+{
+  "ml_metrics": {
+    "model_status": "not_trained",
+    "classifier_accuracy": null,
+    "regressor_rmse": null,
+    "clustering_score": null,
+    "clusters_count": null,
+    "dataset_shape": null,
+    "feature_count": null
+  },
+  "timestamp": "2024-01-15T10:30:00",
+  "note": "Модели обучаются автоматически при первом запуске сервера"
+}
+```
 
 ## Эндпоинты для работы с рекомендациями
 
@@ -317,15 +358,23 @@ python test_push_prediction.py
 
 ## Структура ответа
 
+### Для эндпоинтов предсказания пуш-уведомлений:
+
 - `client_code` - ID клиента
-- `ml_prediction.product` - рекомендованный продукт
-- `ml_prediction.confidence` - уверенность модели (0-1)
-- `ml_prediction.expected_benefit` - ожидаемая выгода в тенге
-- `ml_prediction.cluster` - номер кластера клиента
-- `ml_prediction.cluster_description` - описание кластера
-- `ml_prediction.push_notification` - текст пуш-уведомления
-- `timing_optimization.optimal_hour` - оптимальный час для отправки
-- `features_used` - использованные признаки для предсказания
+- `push_notification` - текст персонализированного пуш-уведомления
+- `recommended_product` - рекомендованный продукт
+- `confidence` - уверенность модели (0-1)
+- `expected_benefit` - ожидаемая выгода в тенге
+- `optimal_time` - оптимальный час для отправки (0-23)
+
+### Для эндпоинтов рекомендаций:
+
+- `client_code` - ID клиента
+- `product` - рекомендованный продукт
+- `confidence` - уверенность модели (0-1)
+- `expected_benefit` - ожидаемая выгода в тенге
+- `cluster_description` - описание кластера клиента
+- `push_notification` - текст пуш-уведомления
 
 ## Обработка ошибок
 

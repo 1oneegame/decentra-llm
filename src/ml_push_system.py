@@ -124,6 +124,16 @@ class MLPushSystem:
         
         self.ml_model.is_trained = True
         
+        # Сохраняем метрики в объекте для доступа через API
+        self.training_metrics = {
+            'classifier_accuracy': classifier_metrics.get('test_accuracy', 0),
+            'regressor_rmse': regressor_metrics.get('test_rmse', 0),
+            'clustering_score': segmentation_results.get('kmeans_silhouette', 0),
+            'clusters_count': len(segmentation_results.get('analysis', [])),
+            'dataset_shape': X.shape,
+            'feature_count': len(feature_names)
+        }
+        
         results = {
             'classifier_metrics': classifier_metrics,
             'regressor_metrics': regressor_metrics,
